@@ -11,7 +11,23 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     <a href="https://www.typescriptlang.org/" target="_blank">
       <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
     </a>
-    <h1>Vite + TypeScript</h1>
+    <h1>Vite + TypeScript</h1>import Phaser from "phaser";
+    import MyScene from "./scenes/MyScene";
+
+    const config: Phaser.Types.Core.GameConfig = {
+      type: Phaser.AUTO,
+      width: 800,
+      height: 600,
+      physics: {
+        default: "arcade",
+        arcade: {
+          gravity: { y: 200 },
+        },
+      },
+      scene: MyScene,
+    };
+    new Phaser.Game(config);
+
     <div class="card">
       <button id="counter" type="button"></button>
     </div>
