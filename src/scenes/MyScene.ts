@@ -36,6 +36,10 @@ export default class MyScene extends Phaser.Scene {
     if (this.frameTime > 16.5) {
       this.frameTime = 0;
 
+      if (this.players.filter(p => !p.isDefeated).length == 1) {
+        return;
+      }
+
       this.players.forEach((player) => {
 
         if (!player.isDefeatedOrDrawing()) {
