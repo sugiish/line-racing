@@ -1,4 +1,3 @@
-import { UP } from "phaser";
 import Board from "./Board";
 import { BoardIndex } from "./BoardIndex";
 import Line from "./Line";
