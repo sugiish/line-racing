@@ -3,4 +3,5 @@ export enum Direction {
   right,
   left,
   down,
+  checkmated,
 }
