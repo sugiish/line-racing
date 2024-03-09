@@ -22,15 +22,15 @@ export default class MyScene extends Phaser.Scene {
     this.board = new Board(this, 30, 20);
     this.board.draw();
 
-    this.players.push(new Player("yoda", 1, 0xff0000, { x: 7, y: 7 }))
-    this.players.push(new Player("dappo", 2, 0x00ff00, { x: 22, y: 7 }))
-    this.players.push(new Player("harasho", 3, 0x00ffff, { x: 7, y: 12 }))
-    this.players.push(new Player("yharry", 4, 0x0000ff, { x: 22, y: 12 }))
+    this.players.push(new Player("Player1", 1, 0xff0000, { x: 7, y: 7 }, this.add.text(1050, 100, "")))
+    this.players.push(new Player("Player2", 2, 0x00ff00, { x: 22, y: 7 }, this.add.text(1050, 200, "")))
+    this.players.push(new Player("Player3", 3, 0x00ffff, { x: 7, y: 12 }, this.add.text(1050, 300, "")))
+    this.players.push(new Player("Player4", 4, 0xf5b2b2, { x: 22, y: 12 }, this.add.text(1050, 400, "")))
     this.players.forEach((player) => {
       player.init(this.board);
     });
 
-    const readyText = this.add.text(975, 735, "Click to Start..");
+    const readyText = this.add.text(1000, 735, "Click to Start..");
     this.input.on("pointerdown", () => {
       this.isStarted = true;
       readyText.setVisible(false);
@@ -47,7 +47,9 @@ export default class MyScene extends Phaser.Scene {
         return;
       }
 
-      if (this.players.filter(p => !p.isDefeated).length == 1) {
+      const currentPlayers = this.players.filter(p => !p.isDefeated)
+      if (currentPlayers.length == 1) {
+        currentPlayers[0].win();
         return;
       }
 

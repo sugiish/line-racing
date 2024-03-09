@@ -13,7 +13,9 @@ export default class Player {
   head: BoardIndex;
   lines: Line[] = new Array();
 
-  constructor(name: string, id: number, color: number, initailPosition: BoardIndex) {
+  text: Phaser.GameObjects.Text;
+
+  constructor(name: string, id: number, color: number, initailPosition: BoardIndex, text: Phaser.GameObjects.Text) {
 
     if (id == 0) {
       throw new Error("ID は 0 を使用できない");
@@ -23,6 +25,7 @@ export default class Player {
     this.id = id;
     this.color = color;
     this.head = initailPosition;
+    this.text = text.setText(`${this.name}: ${this.lines.length}`).setTint(this.color);
   }
 
   init(board: Board | null) {
@@ -60,12 +63,13 @@ export default class Player {
     }
 
     if (board.isExist(nextPosition)) {
-      this.isDefeated = true;
+      this.defeat();
       return;
     }
     board.update(nextPosition, this.id);
 
     this.lines.push(new Line(scene, this.head, nextPosition, this.color));
+    this.text.setText(`${this.name}: ${this.lines.length}`)
     this.head = nextPosition;
   }
 
@@ -87,5 +91,15 @@ export default class Player {
     return this.lines.some((line) => {
       return !line.isCompletedDrawing
     })
+  }
+
+  defeat() {
+    this.isDefeated = true;
+    this.text.setText(`${this.name}: ${this.lines.length}\nDefeated..`);
+  }
+
+  win() {
+    this.isDefeated = false;
+    this.text.setText(`${this.name}: ${this.lines.length}☆\nWin!!`);
   }
 }
