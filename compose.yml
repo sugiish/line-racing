@@ -1,0 +1,8 @@
+services:
+  line-racing:
+    image: nginx:alpine3.18
+    volumes:
+      - ./dist:/usr/share/nginx/html:ro
+      - ./docker-resources/nginx/conf.d:/etc/nginx/conf.d:ro
+    ports:
+      - 8000:80
