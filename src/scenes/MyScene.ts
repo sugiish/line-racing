@@ -37,7 +37,7 @@ export default class MyScene extends Phaser.Scene {
     })
   }
 
-  update(time: number, delta: number) {
+  update(delta: number) {
     this.frameTime += delta
 
     if (this.frameTime > 16.5) {
