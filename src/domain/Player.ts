@@ -2,6 +2,8 @@ import Board from "./Board";
 import { BoardIndex } from "./BoardIndex";
 import Line from "./Line";
 import { Direction } from "./Direction";
+import player1ApiClient from "./ApiClient";
+import apiClient from "./ApiClient";
 
 export default class Player {
 
@@ -37,6 +39,13 @@ export default class Player {
     if (this.isDefeated || board === null) {
       return;
     }
+
+    apiClient.post("/player1/v1/next", { id: this.id, head: this.head, board: board.board }).then((response) => {
+      console.log(response.status);
+      console.log(response.data);
+    }).catch((err) => {
+      console.log(err);
+    });
 
     let nextPosition = { x: -1, y: -1 };
     for (let i = 0; i < 4; i++) {
