@@ -30,8 +30,10 @@ export default class MyScene extends Phaser.Scene {
       player.init(this.board);
     });
 
+    const readyText = this.add.text(975, 735, "Click to Start..");
     this.input.on("pointerdown", () => {
       this.isStarted = true;
+      readyText.setVisible(false);
     })
   }
 
