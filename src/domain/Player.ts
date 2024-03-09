@@ -1,8 +1,6 @@
 import Board from "./Board";
 import { BoardIndex } from "./BoardIndex";
 import Line from "./Line";
-import { Direction } from "./Direction";
-import player1ApiClient from "./ApiClient";
 import apiClient from "./ApiClient";
 
 export default class Player {
@@ -40,46 +38,47 @@ export default class Player {
       return;
     }
 
+    let nextPosition;
     apiClient.post("/player1/v1/next", { id: this.id, head: this.head, board: board.board }).then((response) => {
-      console.log(response.status);
-      console.log(response.data);
-    }).catch((err) => {
-      console.log(err);
-    });
 
-    let nextPosition = { x: -1, y: -1 };
-    for (let i = 0; i < 4; i++) {
-      switch (i) {
-        case Direction.up:
+      if (response.status != 200) {
+        console.log(response);
+        this.defeat();
+        return;
+      }
+
+      switch (response.data.ops) {
+        case "up":
           nextPosition = { x: this.head.x, y: this.head.y - 1 }
           break;
-        case Direction.right:
+        case "right":
           nextPosition = { x: this.head.x + 1, y: this.head.y }
           break;
-        case Direction.left:
+        case "left":
           nextPosition = { x: this.head.x - 1, y: this.head.y }
           break;
-        case Direction.down:
+        case "down":
           nextPosition = { x: this.head.x, y: this.head.y + 1 }
           break;
         default:
+          this.defeat();
           return;
       }
 
-      if (!board.isExist(nextPosition)) {
-        break;
+      if (board.isExist(nextPosition)) {
+        this.defeat();
+        return;
       }
-    }
 
-    if (board.isExist(nextPosition)) {
+      board.update(nextPosition, this.id);
+      this.lines.push(new Line(scene, this.head, nextPosition, this.color));
+      this.text.setText(`${this.name}: ${this.lines.length}`)
+      this.head = nextPosition;
+
+    }).catch((err) => {
+      console.log(err);
       this.defeat();
-      return;
-    }
-    board.update(nextPosition, this.id);
-
-    this.lines.push(new Line(scene, this.head, nextPosition, this.color));
-    this.text.setText(`${this.name}: ${this.lines.length}`)
-    this.head = nextPosition;
+    });
   }
 
   draw() {
