@@ -4,6 +4,7 @@ import Player from "../domain/Player";
 
 export default class MyScene extends Phaser.Scene {
 
+  isStarted: boolean = false;
   frameTime: number = 0;
 
   board: Board | null = null;
@@ -28,6 +29,10 @@ export default class MyScene extends Phaser.Scene {
     this.players.forEach((player) => {
       player.init(this.board);
     });
+
+    this.input.on("pointerdown", () => {
+      this.isStarted = true;
+    })
   }
 
   update(time: number, delta: number) {
@@ -35,6 +40,10 @@ export default class MyScene extends Phaser.Scene {
 
     if (this.frameTime > 16.5) {
       this.frameTime = 0;
+
+      if (!this.isStarted) {
+        return;
+      }
 
       if (this.players.filter(p => !p.isDefeated).length == 1) {
         return;
