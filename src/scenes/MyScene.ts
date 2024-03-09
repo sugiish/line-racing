@@ -10,6 +10,9 @@ export default class MyScene extends Phaser.Scene {
     super("main");
   }
   preload() {
+  }
+
+  create() {
     // 盤面描画
     const area = this.add.graphics({
       lineStyle: {
@@ -29,8 +32,5 @@ export default class MyScene extends Phaser.Scene {
         area.fillRect(75 + width * x, 75 + height * y, width, height);
       }
     }
-  }
-
-  create() {
   }
 }
