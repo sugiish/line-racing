@@ -37,6 +37,9 @@ class ResponseModel:
 
 @app.post("/v1/next")
 def create_user(body: RequestBody):
+
+  # TODO: ここを独自のアルゴリズムに修正する
+
   for ops in EnumOps:
       if(ops == EnumOps.up):
         dest = Coordinate(body.head.x, body.head.y - 1)
