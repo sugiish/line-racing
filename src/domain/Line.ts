@@ -29,6 +29,7 @@ export default class Line {
 
     const x = this.src.x + (this.dest.x - this.src.x) * this.step / Line.MAX_DRAW_STEP;
     const y = this.src.y + (this.dest.y - this.src.y) * this.step / Line.MAX_DRAW_STEP;
+    this.graphics.clear();
     this.graphics.lineBetween(this.src.x, this.src.y, x, y);
 
     this.step++;
