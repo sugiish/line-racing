@@ -3,8 +3,8 @@ import MyScene from "./scenes/MyScene";
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  width: 1200,
+  height: 800,
   parent: 'app',
   scene: MyScene,
 };
