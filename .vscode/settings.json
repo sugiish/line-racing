@@ -1,0 +1,5 @@
+{
+  "python.analysis.extraPaths": [
+    "~/.asdf/installs/python/3.12.2/lib/python3.12/site-packages/"
+  ]
+}
