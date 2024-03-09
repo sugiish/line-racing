@@ -22,7 +22,7 @@ export default class Board {
         color: 0x000000,
       }
     });
-    this.board = new Array(sizeY).fill(new Array(sizeX).fill(0));
+    this.board = new Array(sizeY).fill([]).map(_ => new Array(sizeX).fill(0));
   }
 
   draw() {
@@ -39,5 +39,16 @@ export default class Board {
     const x = Board.BOARD_OFFSET.x + Board.SQUARE_SIZE.width * index.x;
     const y = Board.BOARD_OFFSET.y + Board.SQUARE_SIZE.height * index.y;
     return { x: x, y: y };
+  }
+
+  isExist(index: BoardIndex) {
+    if (index.x < 0 || index.y < 0 || index.x >= this.board[0].length || index.y >= this.board.length) {
+      return true;
+    }
+    return this.board[index.y][index.x] != 0;
+  }
+
+  update(index: BoardIndex, id: number) {
+    this.board[index.y][index.x] = id;
   }
 }

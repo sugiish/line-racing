@@ -1,12 +1,13 @@
 import Phaser from "phaser";
-import Line from "../domain/Line";
 import Board from "../domain/Board";
+import Player from "../domain/Player";
 
 export default class MyScene extends Phaser.Scene {
 
+  frameTime: number = 0;
+
   board: Board | null = null;
-  line: Line | null = null;
-  line2: Line | null = null;
+  players: Player[] = new Array(0);
 
   constructor() {
     super("main");
@@ -20,12 +21,29 @@ export default class MyScene extends Phaser.Scene {
     this.board = new Board(this, 30, 20);
     this.board.draw();
 
-    this.line = new Line(this, { x: 0, y: 0 }, { x: 0, y: 1 }, 0xff0000);
-    this.line2 = new Line(this, { x: 0, y: 1 }, { x: 1, y: 1 }, 0xff0000);
+    this.players.push(new Player("yoda", 1, 0xff0000, { x: 7, y: 7 }))
+    this.players.push(new Player("dappo", 2, 0x00ff00, { x: 22, y: 7 }))
+    this.players.push(new Player("harasho", 3, 0x00ffff, { x: 7, y: 12 }))
+    this.players.push(new Player("yharry", 4, 0x0000ff, { x: 22, y: 12 }))
+    this.players.forEach((player) => {
+      player.init(this.board);
+    });
   }
 
-  update() {
-    this.line?.draw();
-    this.line2?.draw();
+  update(time: number, delta: number) {
+    this.frameTime += delta
+
+    if (this.frameTime > 16.5) {
+      this.frameTime = 0;
+
+      this.players.forEach((player) => {
+
+        if (!player.isDefeatedOrDrawing()) {
+          player.next(this, this.board);
+        }
+
+        player.draw()
+      })
+    }
   }
 }

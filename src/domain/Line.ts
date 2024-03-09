@@ -5,7 +5,7 @@ import { Coordinate } from "./Coordinate";
 
 export default class Line {
 
-  private static MAX_DRAW_STEP = 25;
+  private static MAX_DRAW_STEP = 5;
   private static BOLD = 7;
 
   graphics: Phaser.GameObjects.Graphics;
