@@ -47,9 +47,9 @@ export default class MyScene extends Phaser.Scene {
       player.draw()
     })
 
-    const currentPlayers = this.players.filter(p => !p.isDefeated)
-    if (currentPlayers.length == 1) {
-      currentPlayers[0].win();
+    const activePlayers = this.players.filter(p => !p.isDefeated)
+    if (activePlayers.length == 1) {
+      activePlayers[0].win();
       this.isFinished = true;
       return;
     }
