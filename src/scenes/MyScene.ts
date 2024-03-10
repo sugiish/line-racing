@@ -6,7 +6,6 @@ export default class MyScene extends Phaser.Scene {
 
   isStarted: boolean = false;
   isUpdating: boolean = false;
-  frameTime: number = 0;
 
   board: Board | null = null;
   players: Player[] = new Array(0);
@@ -37,8 +36,7 @@ export default class MyScene extends Phaser.Scene {
     })
   }
 
-  async update(delta: number) {
-    this.frameTime += delta
+  async update() {
 
     if (!this.isStarted) {
       return;
