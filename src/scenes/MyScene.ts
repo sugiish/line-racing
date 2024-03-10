@@ -54,6 +54,18 @@ export default class MyScene extends Phaser.Scene {
       return;
     }
 
+    this.players.forEach((a) => {
+      if (!a.isDefeated) {
+        this.players.forEach((b) => {
+          if (!b.isDefeated && a.id != b.id && a.head.x == b.head.x && a.head.y == b.head.y) {
+            // 同じマスに侵入した場合敗北
+            a.defeat();
+            b.defeat();
+          }
+        })
+      }
+    })
+
     if (this.isUpdating) {
       return;
     }
