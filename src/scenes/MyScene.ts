@@ -39,12 +39,16 @@ export default class MyScene extends Phaser.Scene {
   update(delta: number) {
     this.frameTime += delta
 
+    if (!this.isStarted) {
+      return;
+    }
+
     if (this.frameTime > 16.5) {
       this.frameTime = 0;
 
-      if (!this.isStarted) {
-        return;
-      }
+      this.players.forEach((player) => {
+        player.draw()
+      })
 
       const currentPlayers = this.players.filter(p => !p.isDefeated)
       if (currentPlayers.length == 1) {
@@ -61,10 +65,6 @@ export default class MyScene extends Phaser.Scene {
         })
         this.board?.update(this.players);
       }
-
-      this.players.forEach((player) => {
-        player.draw()
-      })
     }
   }
 }
