@@ -28,52 +28,50 @@ export default class Player {
     this.text = text.setText(`${this.name}: ${this.lines.length}`).setTint(this.color);
   }
 
-  next(scene: Phaser.Scene, board: Board | null) {
+  async next(scene: Phaser.Scene, board: Board | null): Promise<void> {
 
     if (this.isDefeated || board === null) {
       return;
     }
 
-    let nextPosition;
-    apiClient.post("/player1/v1/next", { id: this.id, head: this.head, board: board.board }).then((response) => {
+    const response = await apiClient.post("/player1/v1/next", { id: this.id, head: this.head, board: board.board });
 
-      if (response.status != 200) {
-        console.log(response);
-        this.defeat();
-        return;
-      }
-
-      switch (response.data.ops) {
-        case "up":
-          nextPosition = { x: this.head.x, y: this.head.y - 1 }
-          break;
-        case "right":
-          nextPosition = { x: this.head.x + 1, y: this.head.y }
-          break;
-        case "left":
-          nextPosition = { x: this.head.x - 1, y: this.head.y }
-          break;
-        case "down":
-          nextPosition = { x: this.head.x, y: this.head.y + 1 }
-          break;
-        default:
-          this.defeat();
-          return;
-      }
-
-      if (board.isExist(nextPosition)) {
-        this.defeat();
-        return;
-      }
-
-      this.lines.push(new Line(scene, this.head, nextPosition, this.color));
-      this.text.setText(`${this.name}: ${this.lines.length}`)
-      this.head = nextPosition;
-
-    }).catch((err) => {
-      console.log(err);
+    if (response.status != 200) {
+      console.log(response);
       this.defeat();
-    });
+      return;
+    }
+
+    let nextPosition: Promise<BoardIndex>;
+    switch (response.data.ops) {
+      case "up":
+        nextPosition = Promise.resolve({ x: this.head.x, y: this.head.y - 1 });
+        break;
+      case "right":
+        nextPosition = Promise.resolve({ x: this.head.x + 1, y: this.head.y });
+        break;
+      case "left":
+        nextPosition = Promise.resolve({ x: this.head.x - 1, y: this.head.y });
+        break;
+      case "down":
+        nextPosition = Promise.resolve({ x: this.head.x, y: this.head.y + 1 });
+        break;
+      default:
+        this.defeat();
+        return;
+    }
+
+    nextPosition.then(value => {
+
+      if (board.isExist(value)) {
+        this.defeat();
+        return;
+      }
+
+      this.lines.push(new Line(scene, this.head, value, this.color));
+      this.text.setText(`${this.name}: ${this.lines.length}`)
+      this.head = value;
+    })
   }
 
   draw() {

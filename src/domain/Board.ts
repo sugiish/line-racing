@@ -49,7 +49,7 @@ export default class Board {
     return this.board[index.y][index.x] != 0;
   }
 
-  update(players: Player[]) {
+  async update(players: Player[]): Promise<void> {
     players.forEach((player) => {
       this.board[player.head.y][player.head.x] = player.id;
     });

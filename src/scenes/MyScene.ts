@@ -5,6 +5,7 @@ import Player from "../domain/Player";
 export default class MyScene extends Phaser.Scene {
 
   isStarted: boolean = false;
+  isUpdating: boolean = false;
   frameTime: number = 0;
 
   board: Board | null = null;
@@ -17,7 +18,7 @@ export default class MyScene extends Phaser.Scene {
   preload() {
   }
 
-  create() {
+  async create() {
     // 盤面描画
     this.board = new Board(this, 30, 20);
     this.board.draw();
@@ -27,7 +28,7 @@ export default class MyScene extends Phaser.Scene {
     this.players.push(new Player("Player3", 3, 0x00ffff, { x: 7, y: 12 }, this.add.text(1030, 300, "")))
     this.players.push(new Player("Player4", 4, 0xf5b2b2, { x: 22, y: 12 }, this.add.text(1030, 400, "")))
 
-    this.board.update(this.players);
+    await this.board.update(this.players);
 
     const readyText = this.add.text(1000, 735, "Click to Start..");
     this.input.on("pointerdown", () => {
@@ -36,35 +37,36 @@ export default class MyScene extends Phaser.Scene {
     })
   }
 
-  update(delta: number) {
+  async update(delta: number) {
     this.frameTime += delta
 
     if (!this.isStarted) {
       return;
     }
 
-    if (this.frameTime > 16.5) {
-      this.frameTime = 0;
+    this.players.forEach((player) => {
+      player.draw()
+    })
 
-      this.players.forEach((player) => {
-        player.draw()
-      })
+    const currentPlayers = this.players.filter(p => !p.isDefeated)
+    if (currentPlayers.length == 1) {
+      currentPlayers[0].win();
+      return;
+    }
 
-      const currentPlayers = this.players.filter(p => !p.isDefeated)
-      if (currentPlayers.length == 1) {
-        currentPlayers[0].win();
-        return;
-      }
+    if (this.isUpdating) {
+      return;
+    }
 
-
-      if (this.players.every((player) => {
-        return !player.isDrawing()
-      })) {
-        this.players.forEach((player) => {
-          player.next(this, this.board);
-        })
-        this.board?.update(this.players);
-      }
+    if (this.players.every((player) => {
+      return !player.isDrawing()
+    })) {
+      this.isUpdating = true;
+      await Promise.all(this.players.map(async (player) => {
+        return player.next(this, this.board);
+      }));
+      await this.board?.update(this.players);
+      this.isUpdating = false;
     }
   }
 }
