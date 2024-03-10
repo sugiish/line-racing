@@ -14,9 +14,9 @@ services:
     image: nginx:alpine3.18
     volumes:
       - ./dist:/usr/share/nginx/html:cached
-      - ./docker-resources/nginx/conf.d:/etc/nginx/conf.d:cached
+      - ./docker-resources/nginx/conf.d:/etc/nginx/conf.d:ro
     ports:
-      - 8000:80
+      - 8000:8000
     depends_on:
       player1:
         condition: service_healthy
@@ -30,15 +30,23 @@ services:
     <<: *fastapi
     volumes:
       - ./docker-resources/player1:/app:cached
+    ports:
+      - 8001:8000
   player2:
     <<: *fastapi
     volumes:
       - ./docker-resources/player2:/app:cached
+    ports:
+      - 8002:8000
   player3:
     <<: *fastapi
     volumes:
       - ./docker-resources/player3:/app:cached
+    ports:
+      - 8003:8000
   player4:
     <<: *fastapi
     volumes:
       - ./docker-resources/player4:/app:cached
+    ports:
+      - 8004:8000

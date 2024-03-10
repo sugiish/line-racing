@@ -13,9 +13,11 @@ export default class Player {
   head: BoardIndex;
   lines: Line[] = new Array();
 
+  url: string;
+
   text: Phaser.GameObjects.Text;
 
-  constructor(name: string, id: number, color: number, initailPosition: BoardIndex, text: Phaser.GameObjects.Text) {
+  constructor(name: string, id: number, color: number, initailPosition: BoardIndex, url: string, text: Phaser.GameObjects.Text) {
 
     if (id == 0) {
       throw new Error("ID は 0 を使用できない");
@@ -25,6 +27,7 @@ export default class Player {
     this.id = id;
     this.color = color;
     this.head = initailPosition;
+    this.url = url;
     this.text = text.setText(`${this.name}: ${this.lines.length}`).setTint(this.color);
   }
 
@@ -36,7 +39,7 @@ export default class Player {
 
     let response;
     try {
-      response = await apiClient.post("/player1/v1/next", { id: this.id, head: this.head, board: board.board });
+      response = await apiClient.post(this.url, { id: this.id, head: this.head, board: board.board });
     } catch (err) {
       console.log(err);
       this.defeat();
