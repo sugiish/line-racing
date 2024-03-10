@@ -34,7 +34,14 @@ export default class Player {
       return;
     }
 
-    const response = await apiClient.post("/player1/v1/next", { id: this.id, head: this.head, board: board.board });
+    let response;
+    try {
+      response = await apiClient.post("/player1/v1/next", { id: this.id, head: this.head, board: board.board });
+    } catch (err) {
+      console.log(err);
+      this.defeat();
+      return;
+    }
 
     if (response.status != 200) {
       console.log(response);

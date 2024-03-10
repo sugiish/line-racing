@@ -38,7 +38,7 @@ class ResponseModel:
 @app.post("/v1/next")
 def create_user(body: RequestBody):
 
-  # TODO: ここからを独自のアルゴリズムに修正する
+  # TODO: ここからを独自のアルゴリズムに修正する(5秒以内にレスポンスを返せるようにすること)
 
   for ops in EnumOps:
       if(ops == EnumOps.up):
