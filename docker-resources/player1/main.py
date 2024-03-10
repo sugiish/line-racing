@@ -38,7 +38,7 @@ class ResponseModel:
 @app.post("/v1/next")
 def create_user(body: RequestBody):
 
-  # TODO: ここを独自のアルゴリズムに修正する
+  # TODO: ここからを独自のアルゴリズムに修正する
 
   for ops in EnumOps:
       if(ops == EnumOps.up):
@@ -52,6 +52,8 @@ def create_user(body: RequestBody):
 
       if(dest.x >= 0 and dest.y >= 0 and dest.x < len(body.board[0]) and dest.y < len(body.board) and body.board[dest.y][dest.x] == 0):
         return ResponseModel(ops)
+
+  # TODO: ここまでを独自のアルゴリズムに修正する
 
   return ResponseModel(EnumOps.checkmated)
 
