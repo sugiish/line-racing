@@ -28,10 +28,6 @@ export default class Player {
     this.text = text.setText(`${this.name}: ${this.lines.length}`).setTint(this.color);
   }
 
-  init(board: Board | null) {
-    board?.update(this.head, this.id);
-  }
-
   next(scene: Phaser.Scene, board: Board | null) {
 
     if (this.isDefeated || board === null) {
@@ -70,7 +66,6 @@ export default class Player {
         return;
       }
 
-      board.update(nextPosition, this.id);
       this.lines.push(new Line(scene, this.head, nextPosition, this.color));
       this.text.setText(`${this.name}: ${this.lines.length}`)
       this.head = nextPosition;
@@ -82,20 +77,12 @@ export default class Player {
   }
 
   draw() {
-    if (this.isDefeated) {
-      return;
-    }
-
     this.lines.forEach((line) => {
       line.draw();
     })
   }
 
-  isDefeatedOrDrawing(): boolean {
-    if (this.isDefeated) {
-      return true;
-    }
-
+  isDrawing(): boolean {
     return this.lines.some((line) => {
       return !line.isCompletedDrawing
     })

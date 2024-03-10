@@ -1,5 +1,6 @@
 import { BoardIndex } from "./BoardIndex";
 import { Coordinate } from "./Coordinate";
+import Player from "./Player";
 
 export default class Board {
 
@@ -48,7 +49,9 @@ export default class Board {
     return this.board[index.y][index.x] != 0;
   }
 
-  update(index: BoardIndex, id: number) {
-    this.board[index.y][index.x] = id;
+  update(players: Player[]) {
+    players.forEach((player) => {
+      this.board[player.head.y][player.head.x] = player.id;
+    });
   }
 }

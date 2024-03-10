@@ -26,9 +26,8 @@ export default class MyScene extends Phaser.Scene {
     this.players.push(new Player("Player2", 2, 0x00ff00, { x: 22, y: 7 }, this.add.text(1030, 200, "")))
     this.players.push(new Player("Player3", 3, 0x00ffff, { x: 7, y: 12 }, this.add.text(1030, 300, "")))
     this.players.push(new Player("Player4", 4, 0xf5b2b2, { x: 22, y: 12 }, this.add.text(1030, 400, "")))
-    this.players.forEach((player) => {
-      player.init(this.board);
-    });
+
+    this.board.update(this.players);
 
     const readyText = this.add.text(1000, 735, "Click to Start..");
     this.input.on("pointerdown", () => {
@@ -53,12 +52,17 @@ export default class MyScene extends Phaser.Scene {
         return;
       }
 
-      this.players.forEach((player) => {
 
-        if (!player.isDefeatedOrDrawing()) {
+      if (this.players.every((player) => {
+        return !player.isDrawing()
+      })) {
+        this.players.forEach((player) => {
           player.next(this, this.board);
-        }
+        })
+        this.board?.update(this.players);
+      }
 
+      this.players.forEach((player) => {
         player.draw()
       })
     }
