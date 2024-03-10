@@ -18,6 +18,7 @@ docker compose up -d
 ### bot
 
 `docker-resources/player${N}` 配下の `main.py` を修正する。
+live-reload が効いているため、docker コンテナを立ち上げている状態でソースコードを更新すると、コンテナ側のサーバーに自動で更新内容が反映される。
 
 ### API
 
