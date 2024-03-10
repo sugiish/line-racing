@@ -1,8 +1,44 @@
+x-fastapi: &fastapi
+  image: local/fastapi:latest
+  build:
+    context: docker-resources/fastapi
+  working_dir: /app
+  healthcheck:
+    test: "curl -f http://localhost:8000/health || exit 1"
+    interval: 10s
+    timeout: 5s
+    retries: 5
+
 services:
   line-racing:
     image: nginx:alpine3.18
     volumes:
-      - ./dist:/usr/share/nginx/html:ro
-      - ./docker-resources/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./dist:/usr/share/nginx/html:cached
+      - ./docker-resources/nginx/conf.d:/etc/nginx/conf.d:cached
     ports:
       - 8000:80
+    depends_on:
+      player1:
+        condition: service_healthy
+      player2:
+        condition: service_healthy
+      player3:
+        condition: service_healthy
+      player4:
+        condition: service_healthy
+  player1:
+    <<: *fastapi
+    volumes:
+      - ./docker-resources/player1:/app:cached
+  player2:
+    <<: *fastapi
+    volumes:
+      - ./docker-resources/player2:/app:cached
+  player3:
+    <<: *fastapi
+    volumes:
+      - ./docker-resources/player3:/app:cached
+  player4:
+    <<: *fastapi
+    volumes:
+      - ./docker-resources/player4:/app:cached
