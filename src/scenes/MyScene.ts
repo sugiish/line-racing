@@ -6,6 +6,7 @@ export default class MyScene extends Phaser.Scene {
 
   isStarted: boolean = false;
   isUpdating: boolean = false;
+  isFinished: boolean = false;
 
   board: Board | null = null;
   players: Player[] = new Array(0);
@@ -38,7 +39,7 @@ export default class MyScene extends Phaser.Scene {
 
   async update() {
 
-    if (!this.isStarted) {
+    if (!this.isStarted || this.isFinished) {
       return;
     }
 
@@ -49,6 +50,7 @@ export default class MyScene extends Phaser.Scene {
     const currentPlayers = this.players.filter(p => !p.isDefeated)
     if (currentPlayers.length == 1) {
       currentPlayers[0].win();
+      this.isFinished = true;
       return;
     }
 
