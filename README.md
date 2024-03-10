@@ -5,6 +5,17 @@
 line-racing is a game for for me and my friends to play bot-programming battle.
 This project is inspired by [codingame/tron-battle](https://www.codingame.com/multiplayer/bot-programming/tron-battle).
 
+## Game Rule
+
+- 30x20 のボード上で戦う
+- 1ターンごとに、各プレイヤーは1マス移動しなければならない
+- 上下左右しか移動できない
+- 各プレイヤーが移動したマスには移動できない
+- 負けたプレイヤーが移動したマスは、負けた後に解放される
+- 移動できないマスに移動したか、バグがあったり計算に時間がかかったりなどで 一定時間を超えても移動できなかった場合、負け
+- 同時に同じマスに侵入したら負け
+- 最後まで残っていたプレイヤーが勝ち
+
 ## Usage
 
 ```shell
