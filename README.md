@@ -64,7 +64,7 @@ Response の例
 
 ```json
 {
-  "ops": str
+  "ops": "up"
 }
 ```
 
