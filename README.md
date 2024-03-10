@@ -2,17 +2,17 @@
 
 ## Description
 
-line-racing is a game for for me and my friends to play bot-programming battle.
-This project is inspired by [codingame/tron-battle](https://www.codingame.com/multiplayer/bot-programming/tron-battle).
+line-racing は、bot プログラミングで、身内で遊ぶために用意した対戦ゲームです。
+このプロジェクトは、[codingame/tron-battle](https://www.codingame.com/multiplayer/bot-programming/tron-battle) からインスパイアされています。
 
-## Game Rule
+ゲームのルールは、以下の通りです。
 
 - 30x20 のボード上で戦う
 - 1ターンごとに、各プレイヤーは1マス移動しなければならない
 - 上下左右しか移動できない
 - 各プレイヤーが移動したマスには移動できない
 - 負けたプレイヤーが移動したマスは、負けた後に解放される
-- 移動できないマスに移動したか、バグがあったり計算に時間がかかったりなどで 一定時間を超えても移動できなかった場合、負け
+- 移動できないマスに移動したか、バグがあったり計算に時間がかかったりなどで、5秒を超えて移動できなかった場合、負け
 - 同時に同じマスに侵入したら負け
 - 最後まで残っていたプレイヤーが勝ち
 
@@ -22,19 +22,16 @@ This project is inspired by [codingame/tron-battle](https://www.codingame.com/mu
 docker compose up -d
 ```
 
-をしてから、`http://localhost:8000` にアクセス。
+をしてから、`http://localhost:8000` にアクセスしてください。
 
 ## Development
 
 ### bot
 
-`docker-resources/player${N}` 配下の `main.py` を修正する。
-live-reload が効いているため、docker コンテナを立ち上げている状態でソースコードを更新すると、コンテナ側のサーバーに自動で更新内容が反映される。
+#### API
 
-### API
-
-対戦画面からは、下記の HTTP リクエストが送られてくる。
-5秒以内にレスポンスが無いと失格となる。
+対戦画面を表示しているブラウザから、下記の HTTP リクエストが送られてきます。
+5秒以内にレスポンスが無いと失格となります。
 
 - POST /v1/next
   - RequestBody
@@ -78,6 +75,18 @@ Response の例
   "ops": "up"
 }
 ```
+
+#### Default template
+
+雛型として、[FastAPI](https://fastapi.tiangolo.com/ja/) を利用した Python サーバーを用意しています。
+
+雛形をそのまま用いて開発を行う場合は、 `docker-resources/player${N}` 配下の `main.py` を修正してください。
+live-reload が効いているため、docker コンテナを立ち上げている状態でソースコードを更新すると、コンテナ側のサーバーに自動で更新内容が反映されます。
+
+#### その他
+
+開発習熟度や計算速度等の関係で、別のプログラミング言語を使用して開発したい場合は、その言語を用いて開発してもらって構いません。
+前述の API を仕様を遵守したサーバーを起動できる `Dockerfile` を用意したうえで、 `compose.yml` を修正してください。
 
 ### 対戦画面
 
