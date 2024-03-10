@@ -9,6 +9,7 @@ export default class Player {
   id: number;
   color: number;
   isDefeated: boolean = false;
+  isClear: boolean = false;
 
   head: BoardIndex;
   lines: Line[] = new Array();
@@ -88,6 +89,17 @@ export default class Player {
     this.lines.forEach((line) => {
       line.draw();
     })
+  }
+
+  clear() {
+    if (this.isClear) {
+      return;
+    }
+
+    this.lines.forEach((line) => {
+      line.clear();
+    })
+    this.isClear = true;
   }
 
   isDrawing(): boolean {

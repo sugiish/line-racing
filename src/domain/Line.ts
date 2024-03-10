@@ -48,6 +48,10 @@ export default class Line {
     }
   }
 
+  clear() {
+    this.graphics.setVisible(false);
+  }
+
   calcSquareCoordinate(index: BoardIndex): Coordinate {
     const x = Board.BOARD_OFFSET.x + Board.SQUARE_SIZE.width * index.x + Board.SQUARE_SIZE.width / 2;
     const y = Board.BOARD_OFFSET.y + Board.SQUARE_SIZE.height * index.y + Board.SQUARE_SIZE.height / 2;

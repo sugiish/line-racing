@@ -51,7 +51,19 @@ export default class Board {
 
   async update(players: Player[]): Promise<void> {
     players.forEach((player) => {
-      this.board[player.head.y][player.head.x] = player.id;
+      if (!player.isDefeated) {
+        this.board[player.head.y][player.head.x] = player.id;
+      } else {
+
+        // 敗北時に盤面をクリアする
+        for (let y = 0; y < this.board.length; y++) {
+          for (let x = 0; x < this.board[y].length; x++) {
+            if (this.board[y][x] == player.id) {
+              this.board[y][x] = 0;
+            }
+          }
+        }
+      }
     });
   }
 }

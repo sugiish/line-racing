@@ -44,7 +44,11 @@ export default class MyScene extends Phaser.Scene {
     }
 
     this.players.forEach((player) => {
-      player.draw()
+      if (!player.isDefeated) {
+        player.draw();
+      } else {
+        player.clear();
+      }
     })
 
     const activePlayers = this.players.filter(p => !p.isDefeated)
