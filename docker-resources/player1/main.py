@@ -7,6 +7,7 @@ app = FastAPI()
 
 @dataclasses.dataclass
 class Coordinate:
+  id: int
   x: int
   y: int
 
@@ -14,7 +15,7 @@ class Coordinate:
 @dataclasses.dataclass
 class RequestBody:
   id: int
-  head: Coordinate
+  heads: list[Coordinate]
   board: list[list[int]] # 左上原点。x 軸右向き、y 軸左向き。(x, y) = board[y][x]
 
 
@@ -40,15 +41,17 @@ def create_user(body: RequestBody):
 
   # TODO: ここからを独自のアルゴリズムに修正する(5秒以内にレスポンスを返せるようにすること)
 
+  head = next(filter(lambda x: x.id == body.id, body.heads), Coordinate(-1, -1, -1))
+
   for ops in EnumOps:
       if(ops == EnumOps.up):
-        dest = Coordinate(body.head.x, body.head.y - 1)
+        dest = Coordinate(body.id, head.x, head.y - 1)
       elif(ops == EnumOps.right):
-        dest = Coordinate(body.head.x + 1, body.head.y)
+        dest = Coordinate(body.id, head.x + 1, head.y)
       elif(ops == EnumOps.left):
-        dest = Coordinate(body.head.x - 1, body.head.y)
+        dest = Coordinate(body.id, head.x - 1, head.y)
       elif(ops == EnumOps.down):
-        dest = Coordinate(body.head.x, body.head.y + 1)
+        dest = Coordinate(body.id, head.x, head.y + 1)
 
       if(dest.x >= 0 and dest.y >= 0 and dest.x < len(body.board[0]) and dest.y < len(body.board) and body.board[dest.y][dest.x] == 0):
         return ResponseModel(ops)
