@@ -32,7 +32,7 @@ export default class Player {
     this.text = text.setText(`${this.name}: ${this.lines.length}`).setTint(this.color);
   }
 
-  async next(scene: Phaser.Scene, board: Board | null): Promise<void> {
+  async next(scene: Phaser.Scene, board: Board | null, heads: Array<BoardIndex>): Promise<void> {
 
     if (this.isDefeated || board === null) {
       return;
@@ -40,7 +40,7 @@ export default class Player {
 
     let response;
     try {
-      response = await apiClient.post(this.url, { id: this.id, head: this.head, board: board.board });
+      response = await apiClient.post(this.url, { id: this.id, heads: heads, board: board.board });
     } catch (err) {
       console.log(err);
       this.defeat();

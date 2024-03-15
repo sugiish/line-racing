@@ -78,10 +78,24 @@ export default class MyScene extends Phaser.Scene {
       return !player.isDrawing()
     })) {
       this.isUpdating = true;
+      const heads = this.players
+        .filter((player) => {
+          return !player.isDefeated
+        })
+        .map((player) => {
+          return {
+            id: player.id,
+            x: player.head.x,
+            y: player.head.y,
+          };
+        });
+
       await Promise.all(this.players.map(async (player) => {
-        return player.next(this, this.board);
+        return player.next(this, this.board, heads);
       }));
+
       await this.board?.update(this.players);
+
       this.isUpdating = false;
     }
   }
