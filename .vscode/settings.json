@@ -1,5 +1,14 @@
 {
   "python.analysis.extraPaths": [
     "~/.asdf/installs/python/3.12.2/lib/python3.12/site-packages/"
-  ]
+  ],
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit",
+      "source.organizeImports": "explicit"
+    },
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
+  "ruff.lint.run": "onSave",
 }
