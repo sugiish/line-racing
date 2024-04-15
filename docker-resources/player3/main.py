@@ -77,11 +77,8 @@ class ResponseModel:
 class RouteNode:
     x: int
     y: int
-    up_node: "RouteNode"
-    right_node: "RouteNode"
-    left_node: "RouteNode"
-    down_node: "RouteNode"
     prev_node: "RouteNode"
+    next_nodes: dict[EnumOps, "RouteNode"]
     score: int
     searched: bool
 
@@ -145,6 +142,12 @@ async def health():
 BFS_MAX_VALUE = 10000
 
 
+def is_movable(board: (list[list[int]] | np.ndarray), x: int, y: int):
+    if isinstance(board, np.ndarray):
+        return 0 <= x < WIDTH and 0 <= y < HEIGHT and board[y, x] == 0
+    return 0 <= x < WIDTH and 0 <= y < HEIGHT and board[y][x] == 0
+
+
 def calculate_voronoi_counts(board, heads):
     CONFLICT = 10
     voronoi_board = np.zeros((HEIGHT, WIDTH))
@@ -190,228 +193,95 @@ def search_longest_route_v2(board, x, y, id, root_ops_list, abort_time):
     root = RouteNode(
         x=x,
         y=y,
-        up_node=None,
-        right_node=None,
-        left_node=None,
-        down_node=None,
         prev_node=None,
+        next_nodes={},
         score=0,
         searched=False,
     )
+    leaf_count = 0
     while time.time() < abort_time:
         route = deque()
         route_board = np.array(board)
         next_ops_list = list(
             filter(
-                lambda ops: 0 <= x + direction(ops)[0] < WIDTH
-                and 0 <= y + direction(ops)[1] < HEIGHT
-                and route_board[y + direction(ops)[1], x + direction(ops)[0]] == 0,
+                lambda ops: is_movable(
+                    board, x + direction(ops)[0], y + direction(ops)[1]
+                )
+                and not (ops in root.next_nodes and root.next_nodes[ops].searched),
                 root_ops_list,
             )
         )
-        if (
-            EnumOps.up in next_ops_list
-            and root.up_node is not None
-            and root.up_node.searched
-        ):
-            next_ops_list.remove(EnumOps.up)
-        if (
-            EnumOps.right in next_ops_list
-            and root.right_node is not None
-            and root.right_node.searched
-        ):
-            next_ops_list.remove(EnumOps.right)
-        if (
-            EnumOps.left in next_ops_list
-            and root.left_node is not None
-            and root.left_node.searched
-        ):
-            next_ops_list.remove(EnumOps.left)
-        if (
-            EnumOps.down in next_ops_list
-            and root.down_node is not None
-            and root.down_node.searched
-        ):
-            next_ops_list.remove(EnumOps.down)
         if len(next_ops_list) == 0:
             break
         next_ops = random.choice(next_ops_list)
-        match next_ops:
-            case EnumOps.up:
-                if root.up_node is None:
-                    root.up_node = RouteNode(
-                        x=x,
-                        y=y - 1,
-                        up_node=None,
-                        right_node=None,
-                        left_node=None,
-                        down_node=None,
-                        prev_node=root,
-                        score=0,
-                        searched=False,
-                    )
-                next_node = root.up_node
-            case EnumOps.right:
-                if root.right_node is None:
-                    root.right_node = RouteNode(
-                        x=x + 1,
-                        y=y,
-                        up_node=None,
-                        right_node=None,
-                        left_node=None,
-                        down_node=None,
-                        prev_node=root,
-                        score=0,
-                        searched=False,
-                    )
-                next_node = root.right_node
-            case EnumOps.left:
-                if root.left_node is None:
-                    root.left_node = RouteNode(
-                        x=x - 1,
-                        y=y,
-                        up_node=None,
-                        right_node=None,
-                        left_node=None,
-                        down_node=None,
-                        prev_node=root,
-                        score=0,
-                        searched=False,
-                    )
-                next_node = root.left_node
-            case EnumOps.down:
-                if root.down_node is None:
-                    root.down_node = RouteNode(
-                        x=x,
-                        y=y + 1,
-                        up_node=None,
-                        right_node=None,
-                        left_node=None,
-                        down_node=None,
-                        prev_node=root,
-                        score=0,
-                        searched=False,
-                    )
-                next_node = root.down_node
+        if next_ops not in root.next_nodes:
+            root.next_nodes[next_ops] = RouteNode(
+                x=x + direction(next_ops)[0],
+                y=y + direction(next_ops)[1],
+                prev_node=root,
+                next_nodes={},
+                score=0,
+                searched=False,
+            )
+        next_node = root.next_nodes[next_ops]
         route.append(next_node)
         route_board[next_node.y, next_node.x] = id
         while time.time() < abort_time:
             next_ops_list = list(
                 filter(
-                    lambda ops: 0 <= x + direction(ops)[0] < WIDTH
-                    and 0 <= y + direction(ops)[1] < HEIGHT
-                    and route_board[y + direction(ops)[1], x + direction(ops)[0]] == 0,
+                    lambda ops: is_movable(
+                        route_board,
+                        next_node.x + direction(ops)[0],
+                        next_node.y + direction(ops)[1],
+                    )
+                    and not (
+                        ops in next_node.next_nodes
+                        and next_node.next_nodes[ops].searched
+                    ),
                     ops_list,
                 )
             )
-            if (
-                EnumOps.up in next_ops_list
-                and next_node.up_node is not None
-                and next_node.up_node.searched
-            ):
-                next_ops_list.remove(EnumOps.up)
-            if (
-                EnumOps.right in next_ops_list
-                and next_node.right_node is not None
-                and next_node.right_node.searched
-            ):
-                next_ops_list.remove(EnumOps.right)
-            if (
-                EnumOps.left in next_ops_list
-                and next_node.left_node is not None
-                and next_node.left_node.searched
-            ):
-                next_ops_list.remove(EnumOps.left)
-            if (
-                EnumOps.down in next_ops_list
-                and next_node.down_node is not None
-                and next_node.down_node.searched
-            ):
-                next_ops_list.remove(EnumOps.down)
             if len(next_ops_list) == 0:
                 next_node.searched = True
                 next_node.score = len(route)
                 for node in reversed(route):
                     if next_node.score > node.score:
                         node.score = next_node.score
+                    available_ops = list(
+                        filter(
+                            lambda ops: is_movable(
+                                route_board,
+                                node.x + direction(ops)[0],
+                                node.y + direction(ops)[1],
+                            )
+                            and not (
+                                ops in node.next_nodes and node.next_nodes[ops].searched
+                            ),
+                            ops_list,
+                        )
+                    )
+                    if len(available_ops) == 0:
+                        node.searched = True
                     route_board[node.y, node.x] = 0
+                leaf_count += 1
                 break
             next_ops = random.choice(next_ops_list)
-            match next_ops:
-                case EnumOps.up:
-                    if next_node.up_node is None:
-                        next_node.up_node = RouteNode(
-                            x=x,
-                            y=y - 1,
-                            up_node=None,
-                            right_node=None,
-                            left_node=None,
-                            down_node=None,
-                            prev_node=next_node,
-                            score=0,
-                            searched=False,
-                        )
-                    next_node = next_node.up_node
-                case EnumOps.right:
-                    if next_node.right_node is None:
-                        next_node.right_node = RouteNode(
-                            x=x + 1,
-                            y=y,
-                            up_node=None,
-                            right_node=None,
-                            left_node=None,
-                            down_node=None,
-                            prev_node=next_node,
-                            score=0,
-                            searched=False,
-                        )
-                    next_node = next_node.right_node
-                case EnumOps.left:
-                    if next_node.left_node is None:
-                        next_node.left_node = RouteNode(
-                            x=x - 1,
-                            y=y,
-                            up_node=None,
-                            right_node=None,
-                            left_node=None,
-                            down_node=None,
-                            prev_node=next_node,
-                            score=0,
-                            searched=False,
-                        )
-                    next_node = next_node.left_node
-                case EnumOps.down:
-                    if next_node.down_node is None:
-                        next_node.down_node = RouteNode(
-                            x=x,
-                            y=y + 1,
-                            up_node=None,
-                            right_node=None,
-                            left_node=None,
-                            down_node=None,
-                            prev_node=next_node,
-                            score=0,
-                            searched=False,
-                        )
-                    next_node = next_node.down_node
+            if next_ops not in next_node.next_nodes:
+                next_node.next_nodes[next_ops] = RouteNode(
+                    x=next_node.x + direction(next_ops)[0],
+                    y=next_node.y + direction(next_ops)[1],
+                    prev_node=next_node,
+                    next_nodes={},
+                    score=0,
+                    searched=False,
+                )
+            next_node = next_node.next_nodes[next_ops]
             route.append(next_node)
             route_board[next_node.y, next_node.x] = id
-    best_ops = EnumOps.checkmated
-    best_score = 0
-    if root.up_node is not None and root.up_node.score > best_score:
-        best_score = root.up_node.score
-        best_ops = EnumOps.up
-    if root.right_node is not None and root.right_node.score > best_score:
-        best_score = root.right_node.score
-        best_ops = EnumOps.right
-    if root.left_node is not None and root.left_node.score > best_score:
-        best_score = root.left_node.score
-        best_ops = EnumOps.left
-    if root.down_node is not None and root.down_node.score > best_score:
-        best_score = root.down_node.score
-        best_ops = EnumOps.down
-
-    print(root)
+    best_ops = max(root.next_nodes, key=lambda ops: root.next_nodes[ops].score)
+    print(
+        f"best_ops: {best_ops}, score: {root.next_nodes[best_ops].score},leaf_count: {leaf_count}"
+    )
 
     return best_ops
 
@@ -464,9 +334,11 @@ def search_longest_route(board, x, y, id, root_directions, abort_time):
             next_x += next_direction[0]
             next_y += next_direction[1]
             route_board[next_y, next_x] = id
-    print(f"loop_count: {loop_count}")
-    print(f"best_direction: {best_direction}")
-    return best_direction
+    best_ops = convert_to_ops(*best_direction)
+    print(
+        f"longest_distance: {longest_distance}, best_ops: {best_ops}, loop_count: {loop_count}"
+    )
+    return best_ops
 
 
 if __name__ == "__main__":
