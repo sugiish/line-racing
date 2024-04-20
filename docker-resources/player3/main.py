@@ -118,6 +118,7 @@ def create_user(body: RequestBody):
         filter(lambda x: x[1] == max_voronoi_count, voronoi_tuples)
     )
     if len(next_voronoi_tuples) > 1:
+        window = 5 if max_voronoi_count > 100 else 20
         return ResponseModel(
             search_longest_route_v2(
                 body.board,
@@ -126,6 +127,7 @@ def create_user(body: RequestBody):
                 body.id,
                 [d for d, _ in next_voronoi_tuples],
                 start_time + RESPONSE_TIME_LIMIT,
+                window,
             )
         )
     elif len(next_voronoi_tuples) == 1:
@@ -188,7 +190,7 @@ def bfs(board, x, y):
     return bfs_board
 
 
-def search_longest_route_v2(board, x, y, id, root_ops_list, abort_time):
+def search_longest_route_v2(board, x, y, id, root_ops_list, abort_time, window=20):
     ops_list = [EnumOps.up, EnumOps.right, EnumOps.left, EnumOps.down]
     root = RouteNode(
         x=x,
@@ -210,6 +212,8 @@ def search_longest_route_v2(board, x, y, id, root_ops_list, abort_time):
                     current_node.x + direction(ops)[0],
                     current_node.y + direction(ops)[1],
                 )
+                and x - window <= current_node.x + direction(ops)[0] <= x + window
+                and y - window <= current_node.y + direction(ops)[1] <= y + window
                 and not (
                     ops in current_node.next_nodes
                     and current_node.next_nodes[ops].searched
@@ -232,6 +236,8 @@ def search_longest_route_v2(board, x, y, id, root_ops_list, abort_time):
                             route_node.x + direction(ops)[0],
                             route_node.y + direction(ops)[1],
                         )
+                        and x - window <= route_node.x + direction(ops)[0] <= x + window
+                        and y - window <= route_node.y + direction(ops)[1] <= y + window
                         and not (
                             ops in route_node.next_nodes
                             and route_node.next_nodes[ops].searched
