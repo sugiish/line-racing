@@ -198,74 +198,53 @@ def search_longest_route_v2(board, x, y, id, root_ops_list, abort_time):
         score=0,
         searched=False,
     )
+    route = deque()
+    route_board = np.array(board)
+    current_node = root
     while time.time() < abort_time:
-        route = deque()
-        route_board = np.array(board)
         next_ops_list = list(
             filter(
                 lambda ops: is_movable(
-                    board, x + direction(ops)[0], y + direction(ops)[1]
+                    route_board,
+                    current_node.x + direction(ops)[0],
+                    current_node.y + direction(ops)[1],
                 )
-                and not (ops in root.next_nodes and root.next_nodes[ops].searched),
-                root_ops_list,
+                and not (
+                    ops in current_node.next_nodes
+                    and current_node.next_nodes[ops].searched
+                ),
+                ops_list if len(route) > 0 else root_ops_list,
             )
         )
         if len(next_ops_list) == 0:
-            break
+            current_node.searched = True
+            node_scores = [node.score for node in current_node.next_nodes.values()]
+            node_scores.append(len(route))
+            current_node.score = max(node_scores)
+            route_board[current_node.y, current_node.x] = 0
+            current_node = current_node.prev_node
+            if len(route) > 0:
+                route.pop()
+                continue
+            else:
+                break
         next_ops = random.choice(next_ops_list)
-        if next_ops not in root.next_nodes:
-            root.next_nodes[next_ops] = RouteNode(
-                x=x + direction(next_ops)[0],
-                y=y + direction(next_ops)[1],
-                prev_node=root,
+        if next_ops not in current_node.next_nodes:
+            current_node.next_nodes[next_ops] = RouteNode(
+                x=current_node.x + direction(next_ops)[0],
+                y=current_node.y + direction(next_ops)[1],
+                prev_node=current_node,
                 next_nodes={},
                 score=0,
                 searched=False,
             )
-        next_node = root.next_nodes[next_ops]
-        route.append(next_node)
-        route_board[next_node.y, next_node.x] = id
-        while time.time() < abort_time:
-            if next_node is None:
-                break
-            next_ops_list = list(
-                filter(
-                    lambda ops: is_movable(
-                        route_board,
-                        next_node.x + direction(ops)[0],
-                        next_node.y + direction(ops)[1],
-                    )
-                    and not (
-                        ops in next_node.next_nodes
-                        and next_node.next_nodes[ops].searched
-                    ),
-                    ops_list,
-                )
-            )
-            if len(next_ops_list) == 0:
-                next_node.searched = True
-                node_scores = [node.score for node in next_node.next_nodes.values()]
-                node_scores.append(len(route))
-                next_node.score = max(node_scores)
-                route_board[next_node.y, next_node.x] = 0
-                route.pop
-                next_node = next_node.prev_node
-                continue
-            next_ops = random.choice(next_ops_list)
-            if next_ops not in next_node.next_nodes:
-                next_node.next_nodes[next_ops] = RouteNode(
-                    x=next_node.x + direction(next_ops)[0],
-                    y=next_node.y + direction(next_ops)[1],
-                    prev_node=next_node,
-                    next_nodes={},
-                    score=0,
-                    searched=False,
-                )
-            next_node = next_node.next_nodes[next_ops]
-            route.append(next_node)
-            route_board[next_node.y, next_node.x] = id
+        current_node = current_node.next_nodes[next_ops]
+        route.append(next_ops)
+        route_board[current_node.y, current_node.x] = id
     best_ops = max(root.next_nodes, key=lambda ops: root.next_nodes[ops].score)
-    print(f"best_ops: {best_ops}, score: {root.next_nodes[best_ops].score}")
+    print(
+        f"id: {id}, (x, y): ({x}, {y}), best_ops: {best_ops}, score: {root.next_nodes[best_ops].score}"
+    )
 
     return best_ops
 
