@@ -201,6 +201,7 @@ def search_longest_route_v2(board, x, y, id, root_ops_list, abort_time):
     route = deque()
     route_board = np.array(board)
     current_node = root
+    searched_count = 0
     while time.time() < abort_time:
         next_ops_list = list(
             filter(
@@ -217,17 +218,34 @@ def search_longest_route_v2(board, x, y, id, root_ops_list, abort_time):
             )
         )
         if len(next_ops_list) == 0:
-            current_node.searched = True
-            node_scores = [node.score for node in current_node.next_nodes.values()]
-            node_scores.append(len(route))
-            current_node.score = max(node_scores)
-            route_board[current_node.y, current_node.x] = 0
-            current_node = current_node.prev_node
-            if len(route) > 0:
-                route.pop()
-                continue
-            else:
+            if len(route) == 0:
                 break
+            while route:
+                route_node = route.pop()
+                node_scores = [node.score for node in route_node.next_nodes.values()]
+                node_scores.append(len(route))
+                route_node.score = max(node_scores)
+                nops_list = list(
+                    filter(
+                        lambda ops: is_movable(
+                            route_board,
+                            route_node.x + direction(ops)[0],
+                            route_node.y + direction(ops)[1],
+                        )
+                        and not (
+                            ops in route_node.next_nodes
+                            and route_node.next_nodes[ops].searched
+                        ),
+                        ops_list if len(route) > 0 else root_ops_list,
+                    )
+                )
+                if len(nops_list) == 0:
+                    route_node.searched = True
+                route_board[route_node.y, route_node.x] = 0
+            searched_count += 1
+            current_node = root
+            continue
+
         next_ops = random.choice(next_ops_list)
         if next_ops not in current_node.next_nodes:
             current_node.next_nodes[next_ops] = RouteNode(
@@ -239,11 +257,11 @@ def search_longest_route_v2(board, x, y, id, root_ops_list, abort_time):
                 searched=False,
             )
         current_node = current_node.next_nodes[next_ops]
-        route.append(next_ops)
+        route.append(current_node)
         route_board[current_node.y, current_node.x] = id
     best_ops = max(root.next_nodes, key=lambda ops: root.next_nodes[ops].score)
     print(
-        f"id: {id}, (x, y): ({x}, {y}), best_ops: {best_ops}, score: {root.next_nodes[best_ops].score}"
+        f"id: {id}, (x, y): ({x}, {y}), best_ops: {best_ops}, score: {root.next_nodes[best_ops].score}, searched_count: {searched_count}"
     )
 
     return best_ops
