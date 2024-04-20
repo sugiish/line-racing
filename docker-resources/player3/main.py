@@ -83,7 +83,8 @@ class RouteNode:
     searched: bool
 
 
-RESPONSE_TIME_LIMIT = 1
+OPS_LIST = [EnumOps.up, EnumOps.right, EnumOps.left, EnumOps.down]
+RESPONSE_TIME_LIMIT = 4.5
 
 
 @app.post("/v1/next")
@@ -96,42 +97,35 @@ def create_user(body: RequestBody):
     #     convert_to_ops(*search_longest_route(body.board, head.x, head.y, body.id))
     # )
 
-    max_voronoi_count = 0
-    voronoi_tuples = []
-    for ops in [EnumOps.up, EnumOps.right, EnumOps.left, EnumOps.down]:
-        dx, dy = direction(ops)
-        next_head = (head.x + dx, head.y + dy)
-        if not (0 <= next_head[0] < WIDTH and 0 <= next_head[1] < HEIGHT):
-            continue
-        if body.board[next_head[1]][next_head[0]] != 0:
-            continue
-        _heads = [
-            body.heads[i] if h.id != body.id else Coordinate(body.id, *next_head)
-            for i, h in enumerate(body.heads)
-        ]
-        count = calculate_voronoi_counts(body.board, _heads).get(body.id, 0)
-        voronoi_tuples.append((ops, count))
-        if count > max_voronoi_count:
-            max_voronoi_count = count
-    print(f"voronoi_tuples: {voronoi_tuples}")
-    next_voronoi_tuples = list(
-        filter(lambda x: x[1] == max_voronoi_count, voronoi_tuples)
+    voronnoi_count_by_ops = calculate_voronoi_count_by_ops(
+        body.board, body.heads, body.id
     )
-    if len(next_voronoi_tuples) > 1:
-        window = 5 if max_voronoi_count > 100 else 20
+    print(f"voronnoi_count_by_ops: {voronnoi_count_by_ops}")
+    if len(voronnoi_count_by_ops) > 1:
+        max_voronoi_count = max(voronnoi_count_by_ops.values())
+        max_voronoi_count_ops_list = [
+            ops
+            for ops, count in voronnoi_count_by_ops.items()
+            if count == max_voronoi_count
+        ]
+        if len(max_voronoi_count_ops_list) == 1:
+            return ResponseModel(max_voronoi_count_ops_list[0])
+        window = 5 if max_voronoi_count > 100 else 10
         return ResponseModel(
             search_longest_route_v2(
                 body.board,
                 head.x,
                 head.y,
                 body.id,
-                [d for d, _ in next_voronoi_tuples],
+                max_voronoi_count_ops_list,
                 start_time + RESPONSE_TIME_LIMIT,
                 window,
+                max_voronoi_count,
             )
         )
-    elif len(next_voronoi_tuples) == 1:
-        return ResponseModel(next_voronoi_tuples[0][0])
+    elif len(voronnoi_count_by_ops) == 1:
+        max_ops = max(voronnoi_count_by_ops, key=voronnoi_count_by_ops.get)
+        return ResponseModel(max_ops)
 
     return ResponseModel(EnumOps.checkmated)
 
@@ -139,6 +133,28 @@ def create_user(body: RequestBody):
 @app.get("/health")
 async def health():
     return {"status": "up"}
+
+
+def calculate_voronoi_count_by_ops(board, heads, id):
+    head = next(filter(lambda x: x.id == id, heads), Coordinate(-1, -1, -1))
+    voronoi_count_by_ops = {}
+    for ops in OPS_LIST:
+        dx, dy = direction(ops)
+        if not is_movable(board, head.x + dx, head.y + dy):
+            continue
+        _heads = [
+            Coordinate(
+                h.id,
+                h.x + dx,
+                h.y + dy,
+            )
+            if h.id == head.id
+            else h
+            for h in heads
+        ]
+        count = calculate_voronoi_counts(board, _heads).get(head.id, 0)
+        voronoi_count_by_ops[ops] = count
+    return voronoi_count_by_ops
 
 
 BFS_MAX_VALUE = 10000
@@ -169,6 +185,14 @@ def calculate_voronoi_counts(board, heads):
     return dict(zip(voronoi_heads, counts))
 
 
+def kill(board, id):
+    for y in range(HEIGHT):
+        for x in range(WIDTH):
+            if board[y][x] == id:
+                board[y][x] = 0
+    return board
+
+
 def bfs(board, x, y):
     queue = deque()
     bfs_board = np.full((HEIGHT, WIDTH), BFS_MAX_VALUE)
@@ -190,7 +214,9 @@ def bfs(board, x, y):
     return bfs_board
 
 
-def search_longest_route_v2(board, x, y, id, root_ops_list, abort_time, window=20):
+def search_longest_route_v2(
+    board, x, y, id, root_ops_list, abort_time, window=20, terminate_score=None
+):
     ops_list = [EnumOps.up, EnumOps.right, EnumOps.left, EnumOps.down]
     root = RouteNode(
         x=x,
@@ -204,7 +230,10 @@ def search_longest_route_v2(board, x, y, id, root_ops_list, abort_time, window=2
     route_board = np.array(board)
     current_node = root
     searched_count = 0
+    max_score = 0
     while time.time() < abort_time:
+        if terminate_score is not None and max_score >= terminate_score:
+            break
         next_ops_list = list(
             filter(
                 lambda ops: is_movable(
@@ -212,8 +241,8 @@ def search_longest_route_v2(board, x, y, id, root_ops_list, abort_time, window=2
                     current_node.x + direction(ops)[0],
                     current_node.y + direction(ops)[1],
                 )
-                and x - window <= current_node.x + direction(ops)[0] <= x + window
-                and y - window <= current_node.y + direction(ops)[1] <= y + window
+                # and x - window <= current_node.x + direction(ops)[0] <= x + window
+                # and y - window <= current_node.y + direction(ops)[1] <= y + window
                 and not (
                     ops in current_node.next_nodes
                     and current_node.next_nodes[ops].searched
@@ -221,13 +250,24 @@ def search_longest_route_v2(board, x, y, id, root_ops_list, abort_time, window=2
                 ops_list if len(route) > 0 else root_ops_list,
             )
         )
-        if len(next_ops_list) == 0:
+        if (
+            len(next_ops_list) == 0
+            or (current_node.x < x - window or current_node.x > x + window)
+            or (current_node.y < y - window or current_node.y > y + window)
+        ):
             if len(route) == 0:
                 break
+            route_node = route.pop()
+            node_scores = [node.score for node in route_node.next_nodes.values()]
+            node_scores.append(len(route) + 1)
+            route_node.score = max(node_scores)
+            route_node.searched = True
+            route_board[route_node.y, route_node.x] = 0
+            if max_score < route_node.score:
+                max_score = route_node.score
             while route:
                 route_node = route.pop()
                 node_scores = [node.score for node in route_node.next_nodes.values()]
-                node_scores.append(len(route))
                 route_node.score = max(node_scores)
                 nops_list = list(
                     filter(
@@ -236,8 +276,6 @@ def search_longest_route_v2(board, x, y, id, root_ops_list, abort_time, window=2
                             route_node.x + direction(ops)[0],
                             route_node.y + direction(ops)[1],
                         )
-                        and x - window <= route_node.x + direction(ops)[0] <= x + window
-                        and y - window <= route_node.y + direction(ops)[1] <= y + window
                         and not (
                             ops in route_node.next_nodes
                             and route_node.next_nodes[ops].searched
@@ -267,7 +305,7 @@ def search_longest_route_v2(board, x, y, id, root_ops_list, abort_time, window=2
         route_board[current_node.y, current_node.x] = id
     best_ops = max(root.next_nodes, key=lambda ops: root.next_nodes[ops].score)
     print(
-        f"id: {id}, (x, y): ({x}, {y}), best_ops: {best_ops}, score: {root.next_nodes[best_ops].score}, searched_count: {searched_count}"
+        f"id: {id}, (x, y): ({x}, {y}), window: {window}, best_ops: {best_ops}, score: {root.next_nodes[best_ops].score}, searched_count: {searched_count}"
     )
 
     return best_ops
